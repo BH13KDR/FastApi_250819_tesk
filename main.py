@@ -1,10 +1,18 @@
 from fastapi import FastAPI, HTTPException, Path, Query, status
 from typing import List
-from models import MovieCreate, MovieModel, MovieSearchQuery
+from app.models.movies import MovieCreate, MovieModel, MovieSearchQuery
+from app.models.users import UserModel
+from app.routers.movies import movie_router
+from app.routers.users import user_router
 
 app = FastAPI(title="Movie API", description="영화 관리 API")
 
 # 예시용 DB
+UserModel.create_dummy()
+MovieModel.create_dummy()
+
+app.include_router(user_router)
+app.include_router(movie_router)
 movies_db: List[MovieModel] = []
 next_id = 1
 
@@ -63,3 +71,9 @@ def delete_movie(movie_id: int = Path(..., ge=1)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movie not found")
     movies_db = [m for m in movies_db if m.id != movie_id]
     return None
+
+
+if __name__ == '__main__':
+    import uvicorn
+
+    uvicorn.run(app, host='0.0.0.0', port=8000)
